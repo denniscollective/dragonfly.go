@@ -10,23 +10,31 @@ type Job struct {
 	Temp  *os.File
 }
 
-func (job Job) Apply() (string, error) {
+func (job *Job) Apply() (string, error) {
 	fileChan := make(chan *os.File)
 	errChan := make(chan error)
-	go job.Steps[0].Fetch(fileChan, errChan)
-
 	var (
 		temp *os.File
 		err  error
 	)
 
+	go job.Steps[0].Fetch(fileChan, errChan)
+
 	select {
 	case err = <-errChan:
 		return "", err
 	case temp = <-fileChan:
-		job.Temp = temp
-		defer temp.Close()
-		defer os.Remove(temp.Name())
+		//defer temp.Close()
+		//defer os.Remove(temp.Name())
+	}
+
+	go job.Steps[1].Process(temp, fileChan, errChan)
+	select {
+	case err = <-errChan:
+		return "", err
+	case temp = <-fileChan:
+		//defer temp.Close()
+		//defer os.Remove(temp.Name())
 	}
 
 	name := temp.Name()

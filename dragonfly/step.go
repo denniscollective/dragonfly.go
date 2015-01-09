@@ -1,14 +1,26 @@
 package dragonfly
 
 import (
-	//"fmt"
 	"io/ioutil"
 	"os"
+	"os/exec"
 )
 
 type Step struct {
 	Args    []string
 	Command string
+}
+
+func (step Step) Process(temp *os.File, fileChan chan *os.File, errChan chan error) {
+	format := step.Args[1]
+	newTemp, err := step.resize(temp, format)
+
+	if err != nil {
+		errChan <- err
+		return
+	}
+
+	fileChan <- newTemp
 }
 
 func (step Step) Fetch(fileChan chan *os.File, errChan chan error) {
@@ -22,6 +34,30 @@ func (step Step) Fetch(fileChan chan *os.File, errChan chan error) {
 
 	fileChan <- temp
 
+}
+
+func (step Step) resize(image *os.File, format string) (*os.File, error) {
+	binary, err := exec.LookPath("convert")
+	if err != nil {
+		panic(err)
+	}
+
+	tempPrefix := "godragonfly" + format
+	resized, err := ioutil.TempFile(os.TempDir(), tempPrefix)
+	if err != nil {
+		panic(err)
+	}
+
+	args := []string{
+		image.Name(),
+		"-resize", format,
+		resized.Name(),
+	}
+
+	cmd := exec.Command(binary, args...)
+	cmd.Run()
+
+	return resized, err
 }
 
 func fechFile(filename string) (*os.File, error) {

@@ -1,14 +1,13 @@
-package main_test
+package dragonfly_test
 
 import (
 	//"fmt"
-	"github.com/denniscollective/dragonfly.go"
 	"github.com/denniscollective/dragonfly.go/dragonfly"
 	"testing"
 )
 
 func TestFetch(t *testing.T) {
-	job, _ := dragonfly.Decode(main.Stub)
+	job, _ := dragonfly.Decode(dragonfly.Stub)
 	name, err := job.Apply()
 
 	if err != nil {
@@ -22,7 +21,7 @@ func TestFetch(t *testing.T) {
 }
 
 func TestDecodeDragonfly(t *testing.T) {
-	job, err := dragonfly.Decode(main.Stub)
+	job, err := dragonfly.Decode(dragonfly.Stub)
 
 	if err != nil {
 		t.Errorf("Deconde job got error %s", err)
