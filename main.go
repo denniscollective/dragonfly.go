@@ -14,11 +14,11 @@ func main() {
 		panic(err)
 	}
 
-	_, err = job.Apply()
+	name, err := job.Apply()
 
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	fmt.Printf("meow?\n")
+	fmt.Printf("meow? %s\n", name)
 }
