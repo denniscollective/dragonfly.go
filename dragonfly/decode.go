@@ -5,35 +5,29 @@ import (
 	"encoding/json"
 )
 
-type Step struct {
-	Args    []string
-	Command string
-}
+func Decode(str string) (*Job, error) {
+	var job Job
 
-type Job []Step
-
-func Decode(str string) (Job, error) {
 	jobStr, err := decodeJobStr(str)
 	if err != nil {
-		return nil, err
+		return &job, err
 	}
 
 	jobArr, err := decodeJson(jobStr)
 	if err != nil {
-		return nil, err
+		return &job, err
 	}
 
-	job := make(Job, len(jobArr))
+	job.Steps = make([]Step, len(jobArr))
 
 	for i, v := range jobArr {
 		var step Step
 		step.Command = v[0]
 		step.Args = v[1:]
-		job[i] = step
+		job.Steps[i] = step
 	}
 
-	return job, err
-
+	return &job, err
 }
 
 func decodeJobStr(jobStr string) (*[]byte, error) {
