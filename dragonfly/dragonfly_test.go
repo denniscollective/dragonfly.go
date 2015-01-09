@@ -6,8 +6,10 @@ import (
 	"testing"
 )
 
+const stubB64Job string = "W1siZmYiLCIvVXNlcnMvZGVubmlzL3dvcmtzcGFjZS96aXZpdHkvcHVibGljL2NvbnRlbnQvcGhvdG9zZXRzL29yaWdpbmFsc19hcmNoaXZlLzAwMC8wMDAwMDAvMDAwMDAwMDA3LzAwMDAwMDAwMjQtaC1vcmlnLmpwZyJdLFsicCIsInRodW1iIiwiMjB4MjAiXV0"
+
 func TestFetch(t *testing.T) {
-	job, _ := dragonfly.Decode(dragonfly.Stub)
+	job, _ := dragonfly.Decode(stubB64Job)
 	file, err := job.Apply()
 
 	if err != nil {
@@ -21,7 +23,7 @@ func TestFetch(t *testing.T) {
 }
 
 func TestDecodeDragonfly(t *testing.T) {
-	job, err := dragonfly.Decode(dragonfly.Stub)
+	job, err := dragonfly.Decode(stubB64Job)
 
 	if err != nil {
 		t.Errorf("Deconde job got error %s", err)

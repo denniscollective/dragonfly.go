@@ -10,7 +10,7 @@ import (
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/", serveFile)
+	r.HandleFunc("/{b64JobString}", serveFile)
 
 	err := http.ListenAndServe(":2345", r)
 	if err != nil {
@@ -20,7 +20,9 @@ func main() {
 }
 
 func serveFile(response http.ResponseWriter, request *http.Request) {
-	file, err := dragonfly.ImageFor(dragonfly.Stub)
+	vars := mux.Vars(request)
+	jobStr := vars["b64JobString"]
+	file, err := dragonfly.ImageFor(jobStr)
 	if err != nil {
 		fmt.Println(err)
 		return
