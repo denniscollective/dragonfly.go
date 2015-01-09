@@ -13,6 +13,8 @@ type Job struct {
 func (job *Job) Apply() (*os.File, error) {
 	fileChan := make(chan *os.File)
 	errChan := make(chan error)
+	defer close(fileChan)
+	defer close(errChan)
 	var (
 		temp *os.File
 		err  error
