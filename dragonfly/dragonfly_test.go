@@ -8,13 +8,13 @@ import (
 
 func TestFetch(t *testing.T) {
 	job, _ := dragonfly.Decode(dragonfly.Stub)
-	name, err := job.Apply()
+	file, err := job.Apply()
 
 	if err != nil {
 		t.Error("job.Apply failed")
 	}
 
-	if len(name) < 10 {
+	if len(file.Name()) < 10 {
 		t.Error("expected a file Object")
 	}
 

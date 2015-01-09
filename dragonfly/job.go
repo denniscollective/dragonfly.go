@@ -10,7 +10,7 @@ type Job struct {
 	Temp  *os.File
 }
 
-func (job *Job) Apply() (string, error) {
+func (job *Job) Apply() (*os.File, error) {
 	fileChan := make(chan *os.File)
 	errChan := make(chan error)
 	var (
@@ -22,7 +22,7 @@ func (job *Job) Apply() (string, error) {
 
 	select {
 	case err = <-errChan:
-		return "", err
+		panic(err)
 	case temp = <-fileChan:
 		//defer temp.Close()
 		//defer os.Remove(temp.Name())
@@ -31,15 +31,11 @@ func (job *Job) Apply() (string, error) {
 	go job.Steps[1].Process(temp, fileChan, errChan)
 	select {
 	case err = <-errChan:
-		return "", err
+		panic(err)
 	case temp = <-fileChan:
 		//defer temp.Close()
 		//defer os.Remove(temp.Name())
 	}
 
-	name := temp.Name()
-	//stats, _ := temp.Stat()
-	//fmt.Printf("%+v\n%+v \n\n", name, stats)
-
-	return name, err
+	return temp, err
 }
