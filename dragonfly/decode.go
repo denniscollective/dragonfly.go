@@ -12,7 +12,7 @@ type Step struct {
 
 type Job []Step
 
-func Decode(str string) ([]interface{}, error) {
+func Decode(str string) (Job, error) {
 	jobStr, err := decodeJobStr(str)
 	if err != nil {
 		return nil, err
@@ -23,7 +23,16 @@ func Decode(str string) ([]interface{}, error) {
 		return nil, err
 	}
 
-	return jobArr, err
+	job := make(Job, len(jobArr))
+
+	for i, v := range jobArr {
+		var step Step
+		step.command = v[0]
+		step.args = v[1:]
+		job[i] = step
+	}
+
+	return job, err
 
 }
 
@@ -33,8 +42,8 @@ func decodeJobStr(jobStr string) (*[]byte, error) {
 	return &job, err
 }
 
-func decodeJson(str *[]byte) ([]interface{}, error) {
-	var i []interface{}
+func decodeJson(str *[]byte) ([][]string, error) {
+	var i [][]string
 	err := json.Unmarshal(*str, &i)
 	return i, err
 }
