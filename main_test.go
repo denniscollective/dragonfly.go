@@ -1,7 +1,6 @@
 package main_test
 
 import (
-	"fmt"
 	"github.com/denniscollective/dragonfly.go"
 	"github.com/denniscollective/dragonfly.go/dragonfly"
 	"testing"
@@ -14,10 +13,26 @@ func TestDecodeDragonfly(t *testing.T) {
 		t.Errorf("Deconde job got error %s", err)
 	}
 
-	fmt.Println(job)
-	fmt.Println(len(job))
+	if len(job) != 2 {
+		t.Error("job should have two steps")
+	}
 
-	if len(job) < 1 {
-		t.Error("fail")
+	if job[0].Command != "ff" {
+		t.Error("the first test of the stub is supposed to be fetch File")
+	}
+
+	if args := job[1].Args; args[0] != "thumb" && args[1] != "20x20" {
+		t.Error("second step should be a resize to thumbnail 20x20 job")
+	}
+}
+
+func TestDecodeFailse(t *testing.T) {
+	job, err := dragonfly.Decode("this is y i'm hawt")
+	if err == nil {
+		t.Error("Decode errors aren't propagating")
+	}
+
+	if job != nil {
+		t.Error("Decode should return nil when it has an error")
 	}
 }

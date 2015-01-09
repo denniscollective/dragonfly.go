@@ -6,8 +6,8 @@ import (
 )
 
 type Step struct {
-	command string
-	args    []string
+	Args    []string
+	Command string
 }
 
 type Job []Step
@@ -27,8 +27,8 @@ func Decode(str string) (Job, error) {
 
 	for i, v := range jobArr {
 		var step Step
-		step.command = v[0]
-		step.args = v[1:]
+		step.Command = v[0]
+		step.Args = v[1:]
 		job[i] = step
 	}
 
