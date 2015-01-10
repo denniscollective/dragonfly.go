@@ -13,7 +13,6 @@ func Decode(str string) (*Job, error) {
 	if err != nil {
 		return &job, err
 	}
-	fmt.Println(jobStr)
 
 	jobArr, err := decodeJson(jobStr)
 	if err != nil {
@@ -37,10 +36,7 @@ func decodeJobStr(b64Str string) ([]byte, error) {
 	jobStr, err := base64.StdEncoding.DecodeString(b64Str)
 
 	if err != nil {
-		fmt.Println(b64Str)
 		b64Str += "="
-		fmt.Println(b64Str)
-
 		jobStr, err2 := base64.StdEncoding.DecodeString(b64Str)
 		err = err2
 
