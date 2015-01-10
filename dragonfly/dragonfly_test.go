@@ -22,6 +22,20 @@ func TestFetch(t *testing.T) {
 
 }
 
+func TestDecodeThingThatNeedsTwoEquals(t *testing.T) {
+	jobstr := "W1siZmYiLCIvVXNlcnMvZGVubmlzL3dvcmtzcGFjZS96aXZpdHkvcHVibGljL2ltYWdlcy9pY29ucy9kZWZhdWx0XzI1Ni5qcGciXSxbInAiLCJ0aHVtYiIsIjgweDgwIyJdXQ"
+	job, err := dragonfly.Decode(jobstr)
+
+	if err != nil {
+		t.Errorf("Deconde job got error %s", err)
+	}
+
+	if len(job.Steps) != 2 {
+		t.Error("job should have two steps")
+	}
+
+}
+
 func TestDecodeDragonfly(t *testing.T) {
 	job, err := dragonfly.Decode(stubB64Job)
 

@@ -3,6 +3,7 @@ package dragonfly
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 )
 
 func Decode(str string) (*Job, error) {
@@ -12,6 +13,7 @@ func Decode(str string) (*Job, error) {
 	if err != nil {
 		return &job, err
 	}
+	fmt.Println(jobStr)
 
 	jobArr, err := decodeJson(jobStr)
 	if err != nil {
@@ -30,14 +32,36 @@ func Decode(str string) (*Job, error) {
 	return &job, err
 }
 
-func decodeJobStr(jobStr string) (*[]byte, error) {
-	fixedStr := jobStr + "=\n" //dragonfly trims a trailing =\n from the jobs
-	job, err := base64.StdEncoding.DecodeString(fixedStr)
-	return &job, err
+func decodeJobStr(b64Str string) ([]byte, error) {
+	b64Str += "=" //dragonfly trims a trailing =\n from the jobs
+	jobStr, err := base64.StdEncoding.DecodeString(b64Str)
+
+	if err != nil {
+		fmt.Println(b64Str)
+		b64Str += "="
+		fmt.Println(b64Str)
+
+		jobStr, err2 := base64.StdEncoding.DecodeString(b64Str)
+		err = err2
+
+		if err2 != nil {
+			fmt.Println("\n******************************************************************************")
+			fmt.Println(b64Str)
+			fmt.Println(jobStr)
+			fmt.Println("******************************************************************************\n")
+		}
+	}
+
+	return jobStr, err
 }
 
-func decodeJson(str *[]byte) ([][]string, error) {
+func decodeJson(jsonStr []byte) ([][]string, error) {
 	var i [][]string
-	err := json.Unmarshal(*str, &i)
+	err := json.Unmarshal(jsonStr, &i)
+	if err != nil {
+		str := string(jsonStr) + "]"
+		err = json.Unmarshal([]byte(str), &i)
+
+	}
 	return i, err
 }
