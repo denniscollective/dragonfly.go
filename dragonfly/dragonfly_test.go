@@ -9,11 +9,10 @@ import (
 const stubB64Job string = "W1siZmYiLCIvVXNlcnMvZGVubmlzL3dvcmtzcGFjZS96aXZpdHkvcHVibGljL2NvbnRlbnQvcGhvdG9zZXRzL29yaWdpbmFsc19hcmNoaXZlLzAwMC8wMDAwMDAvMDAwMDAwMDA3LzAwMDAwMDAwMjQtaC1vcmlnLmpwZyJdLFsicCIsInRodW1iIiwiMjB4MjAiXV0"
 
 func TestFetch(t *testing.T) {
-	job, _ := dragonfly.Decode(stubB64Job)
-	file, err := job.Apply()
+	file, err := dragonfly.ImageFor(stubB64Job)
 
 	if err != nil {
-		t.Error("job.Apply failed")
+		t.Error("ImgFor(stub) failed")
 	}
 
 	if len(file.Name()) < 10 {
