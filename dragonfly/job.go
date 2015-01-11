@@ -25,7 +25,7 @@ func (job *Job) Apply() (*os.File, error) {
 
 	select {
 	case err = <-errChan:
-		panic(err)
+		return nil, err
 	case temp = <-fileChan:
 		//defer temp.Close()
 		//defer os.Remove(temp.Name())
@@ -34,7 +34,7 @@ func (job *Job) Apply() (*os.File, error) {
 	go job.Steps[1].Process(temp, fileChan, errChan)
 	select {
 	case err = <-errChan:
-		panic(err)
+		return nil, err
 	case temp = <-fileChan:
 		//defer temp.Close()
 		//defer os.Remove(temp.Name())

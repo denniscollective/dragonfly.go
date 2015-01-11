@@ -39,13 +39,13 @@ func (step Step) Fetch(fileChan chan *os.File, errChan chan error) {
 func (step Step) resize(image *os.File, format string) (*os.File, error) {
 	binary, err := exec.LookPath("convert")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	tempPrefix := "godragonfly" + format
 	resized, err := ioutil.TempFile(os.TempDir(), tempPrefix)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	args := []string{
@@ -64,18 +64,18 @@ func fechFile(filename string) (*os.File, error) {
 	content, err := ioutil.ReadFile(filename)
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	temp, err := ioutil.TempFile(os.TempDir(), "godragonfly")
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	_, err = temp.Write(content)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return temp, err
