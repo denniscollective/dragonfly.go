@@ -19,16 +19,17 @@ func Decode(str string) (*Job, error) {
 		return &job, err
 	}
 
-	job.Steps = make([]Step, len(jobArr))
+	job.Steps = make([]*Step, len(jobArr))
 
 	for i, v := range jobArr {
-		var step Step
-		step.Command = v[0]
-		step.Args = v[1:]
-		job.Steps[i] = step
+		job.Steps[i] = StepFromArray(v)
 	}
 
 	return &job, err
+}
+
+func StepFromArray(array []string) *Step {
+	return &Step{Command: array[0], Args: array[1:]}
 }
 
 func decodeJobStr(b64Str string) ([]byte, error) {
