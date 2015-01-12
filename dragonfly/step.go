@@ -1,42 +1,59 @@
 package dragonfly
 
 import (
+	//"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 )
 
-type Step struct {
+type Step interface {
+	Apply(in chan *os.File) (out chan *os.File, errChan chan error)
+	//Args    []string
+	//Command string
+}
+
+type FetchFileStep struct {
 	Args    []string
 	Command string
 }
 
-func (step Step) Process(temp *os.File, fileChan chan *os.File, errChan chan error) {
-	format := step.Args[1]
-	newTemp, err := step.resize(temp, format)
-
-	if err != nil {
-		errChan <- err
-		return
-	}
-
-	fileChan <- newTemp
+type ResizeStep struct {
+	Args    []string
+	Command string
 }
 
-func (step Step) Fetch(fileChan chan *os.File, errChan chan error) {
-	filename := step.Args[0]
-	temp, err := fechFile(filename)
+type stepApplication func() (*os.File, error)
 
-	if err != nil {
-		errChan <- err
-		return
-	}
+func applyStepPipeline(step stepApplication) (out chan *os.File, errChan chan error) {
+	out = make(chan *os.File)
+	errChan = make(chan error)
 
-	fileChan <- temp
+	go func() {
+		defer close(out)
+		defer close(errChan)
 
+		content, err := step()
+		if err != nil {
+			errChan <- err
+			return
+		}
+
+		out <- content
+	}()
+
+	return out, errChan
 }
 
-func (step Step) resize(image *os.File, format string) (*os.File, error) {
+func (step ResizeStep) Apply(in chan *os.File) (out chan *os.File, errChan chan error) {
+	return applyStepPipeline(func() (newTemp *os.File, err error) {
+		temp := <-in
+		format := step.Args[1]
+		return step.resize(temp, format)
+	})
+}
+
+func (step ResizeStep) resize(image *os.File, format string) (*os.File, error) {
 	binary, err := exec.LookPath("convert")
 	if err != nil {
 		return nil, err
@@ -58,6 +75,13 @@ func (step Step) resize(image *os.File, format string) (*os.File, error) {
 	cmd.Run()
 
 	return resized, err
+}
+
+func (step FetchFileStep) Apply(in chan *os.File) (out chan *os.File, errChan chan error) {
+	return applyStepPipeline(func() (temp *os.File, err error) {
+		filename := step.Args[0]
+		return fechFile(filename)
+	})
 }
 
 func fechFile(filename string) (*os.File, error) {

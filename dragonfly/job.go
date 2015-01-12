@@ -6,30 +6,33 @@ import (
 )
 
 type Job struct {
-	Steps []*Step
+	Steps []Step
 	Temp  *os.File
 }
 
 func (job *Job) Apply() (temp *os.File, err error) {
-	fileChan := make(chan *os.File, 1)
-	errChan := make(chan error, 1)
-	defer close(fileChan)
-	defer close(errChan)
 
-	go job.Steps[0].Fetch(fileChan, errChan)
+	temp, err = job.applyStep(0, nil)
 
-	select {
-	case err = <-errChan:
-		return nil, err
-	case temp = <-fileChan:
+	if err != nil {
+		return
 	}
 
-	go job.Steps[1].Process(temp, fileChan, errChan)
-	select {
-	case err = <-errChan:
-		return nil, err
-	case temp = <-fileChan:
-	}
-
+	pipe := make(chan *os.File, 1)
+	pipe <- temp
+	defer close(pipe)
+	temp, err = job.applyStep(1, pipe)
 	return
+
+}
+
+func (job *Job) applyStep(i int, seed chan *os.File) (temp *os.File, err error) {
+	fileChan, errChan := job.Steps[i].Apply(seed)
+
+	select {
+	case err = <-errChan:
+	case temp = <-fileChan:
+	}
+
+	return temp, err
 }

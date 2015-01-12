@@ -19,7 +19,7 @@ func Decode(str string) (*Job, error) {
 		return &job, err
 	}
 
-	job.Steps = make([]*Step, len(jobArr))
+	job.Steps = make([]Step, len(jobArr))
 
 	for i, v := range jobArr {
 		job.Steps[i] = StepFromArray(v)
@@ -28,8 +28,16 @@ func Decode(str string) (*Job, error) {
 	return &job, err
 }
 
-func StepFromArray(array []string) *Step {
-	return &Step{Command: array[0], Args: array[1:]}
+func StepFromArray(array []string) Step {
+	switch array[0] {
+	case "ff":
+		return &FetchFileStep{Command: array[0], Args: array[1:]}
+	case "p":
+		return &ResizeStep{Command: array[0], Args: array[1:]}
+
+	}
+
+	return nil
 }
 
 func decodeJobStr(b64Str string) ([]byte, error) {
