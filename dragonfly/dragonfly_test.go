@@ -15,12 +15,23 @@ func TestFetch(t *testing.T) {
 		t.Errorf("ImgFor(stub) failed %s", err)
 	}
 
-	if len(file.Name()) < 10 {
+	if file == nil || len(file.Name()) < 10 {
 		t.Error("expected a file Object")
 	}
 
 }
 
+func TestFirstStepFailingErrorPropigation(t *testing.T) {
+	jobstr := "W1siZmYiLCJwYXJ0eV90aW1lIl0sWyJwIiwidGh1bWIiLCIyMHgyMCJdXQ" //fetches a nonexistent file called partytime in step one
+	_, err := dragonfly.ImageFor(jobstr)
+	if err == nil {
+		t.Error("nonexistent file party_time is supposed to fail fetching")
+		return
+	}
+	if err.Error() != "open party_time: no such file or directory" {
+		t.Errorf("Deconde job should have gotten fetch file failed, got %s", err)
+	}
+}
 func TestDecodeThingThatNeedsTwoEquals(t *testing.T) {
 	jobstr := "W1siZmYiLCIvVXNlcnMvZGVubmlzL3dvcmtzcGFjZS96aXZpdHkvcHVibGljL2ltYWdlcy9pY29ucy9kZWZhdWx0XzI1Ni5qcGciXSxbInAiLCJ0aHVtYiIsIjgweDgwIyJdXQ"
 	job, err := dragonfly.Decode(jobstr)

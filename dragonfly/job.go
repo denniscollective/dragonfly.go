@@ -11,28 +11,22 @@ type Job struct {
 }
 
 func (job *Job) Apply() (temp *os.File, err error) {
+	seed := make(chan *os.File)
+	close(seed)
 
-	temp, err = job.applyStep(0, nil)
-
-	if err != nil {
-		return
-	}
-
-	pipe := make(chan *os.File, 1)
-	pipe <- temp
-	defer close(pipe)
-	temp, err = job.applyStep(1, pipe)
-	return
-
-}
-
-func (job *Job) applyStep(i int, seed chan *os.File) (temp *os.File, err error) {
-	fileChan, errChan := job.Steps[i].Apply(seed)
+	seed, errChan := job.Steps[0].Apply(seed)
+	seed2, errChan2 := job.Steps[1].Apply(seed)
 
 	select {
-	case err = <-errChan:
-	case temp = <-fileChan:
-	}
+	//case err = <-errChan:
 
-	return temp, err
+	case err = <-errChan:
+		close(seed2)
+		close(errChan2)
+	case err = <-errChan2:
+	case temp = <-seed:
+
+	}
+	return
+
 }

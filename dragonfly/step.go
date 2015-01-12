@@ -1,7 +1,6 @@
 package dragonfly
 
 import (
-	//"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -65,6 +64,10 @@ func (step ResizeStep) resize(image *os.File, format string) (*os.File, error) {
 		return nil, err
 	}
 
+	//if image == nil {
+	//	return nil, err
+	//}
+
 	args := []string{
 		image.Name(),
 		"-resize", format,
@@ -81,6 +84,7 @@ func (step FetchFileStep) Apply(in chan *os.File) (out chan *os.File, errChan ch
 	return applyStepPipeline(func() (temp *os.File, err error) {
 		filename := step.Args[0]
 		return fechFile(filename)
+		//return nil, errors.New("please don't stop the music")
 	})
 }
 
