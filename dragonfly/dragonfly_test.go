@@ -57,8 +57,6 @@ func TestDecodeDragonfly(t *testing.T) {
 		t.Error("job should have two steps")
 	}
 
-	t.Skip()
-
 	//if job.Steps[0].Command != "ff" {
 	//t.Error("the first test of the stub is supposed to be fetch File")
 	//}
@@ -69,13 +67,12 @@ func TestDecodeDragonfly(t *testing.T) {
 }
 
 func TestDecodeFailse(t *testing.T) {
-	t.Skip()
 	job, err := dragonfly.Decode("this is y i'm hawt")
 	if err == nil {
 		t.Error("Decode errors aren't propagating")
 	}
 
-	if job != nil {
-		t.Error("Decode should return nil when it has an error")
+	if len(job.Steps) != 0 {
+		t.Error("Decode return a nil job")
 	}
 }

@@ -11,7 +11,5 @@ func ImageFor(jobstr string) (file *os.File, err error) {
 		return nil, err
 	}
 
-	file, err = job.Apply()
-
-	return
+	return job.Apply()
 }
