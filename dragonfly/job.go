@@ -19,30 +19,30 @@ type Job struct {
 }
 
 func (job *Job) Apply() (temp *os.File, err error) {
-	blarrr := make(chan *os.File)
-	close(blarrr)
-	seed1, errChan := job.Steps[0].Apply(blarrr)
-	seed2, errChan2 := job.Steps[1].Apply(seed1)
-	//blarrr <- temp
+
+	head := make(chan *os.File)
+	tail, errChan := job.Steps[0].Apply(head)
+	tail, errChan2 := job.Steps[1].Apply(tail)
+
+	close(head)
 
 	select {
-	//case err = <-errChan:
 
 	case err = <-errChan:
 		fmt.Println("errr")
 		fmt.Println(err)
 
 		if err == nil {
-			temp = <-seed2
+			temp = <-tail
 		}
 
 	case err = <-errChan2:
 		fmt.Println("errr2")
 		fmt.Println(err)
 		if err == nil {
-			temp = <-seed2
+			temp = <-tail
 		}
-	case temp = <-seed2:
+	case temp = <-tail:
 		fmt.Println("seed")
 		fmt.Println("tmp")
 
