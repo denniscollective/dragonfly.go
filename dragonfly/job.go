@@ -1,14 +1,14 @@
 package dragonfly
 
 import (
-	"fmt"
+	//"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 )
 
 type Step interface {
-	Apply(in chan *os.File) (out chan *os.File, errChan chan error)
+	Apply(in chan *os.File, errIn chan error) (out chan *os.File, errChan chan error)
 	//Args    []string
 	//Command string
 }
@@ -19,57 +19,52 @@ type Job struct {
 }
 
 func (job *Job) Apply() (temp *os.File, err error) {
+	tail := make(chan *os.File)
+	errChan := make(chan error)
+	close(tail)
+	defer close(errChan)
 
-	head := make(chan *os.File)
-	tail, errChan := job.Steps[0].Apply(head)
-	tail, errChan2 := job.Steps[1].Apply(tail)
-
-	close(head)
+	for _, step := range job.Steps {
+		tail, errChan = step.Apply(tail, errChan)
+	}
 
 	select {
-
 	case err = <-errChan:
-		fmt.Println("errr")
-		fmt.Println(err)
-
-		if err == nil {
-			temp = <-tail
-		}
-
-	case err = <-errChan2:
-		fmt.Println("errr2")
-		fmt.Println(err)
-		if err == nil {
-			temp = <-tail
-		}
 	case temp = <-tail:
-		fmt.Println("seed")
-		fmt.Println("tmp")
-
 	}
 
 	return
-
 }
 
 type stepApplication func(temp *os.File) (*os.File, error)
 
-func applyStepPipeline(in chan *os.File, step stepApplication) (out chan *os.File, errChan chan error) {
+func applyStepPipeline(in chan *os.File, errIn chan error, step stepApplication) (out chan *os.File, errChan chan error) {
 	out = make(chan *os.File)
 	errChan = make(chan error)
 
 	go func() {
-		prev := <-in
 		defer close(out)
 		defer close(errChan)
 
-		content, err := step(prev)
+		var (
+			err     error
+			content *os.File
+		)
+
+		select {
+		case prev := <-in:
+			content, err = step(prev)
+
+		case err = <-errIn:
+		}
+
 		if err != nil {
 			errChan <- err
 			return
 		}
 
 		out <- content
+
 	}()
 
 	return out, errChan
@@ -85,10 +80,18 @@ type ResizeStep struct {
 	Command string
 }
 
-func (step ResizeStep) Apply(in chan *os.File) (out chan *os.File, errChan chan error) {
-	return applyStepPipeline(in, func(temp *os.File) (newTemp *os.File, err error) {
+func (step ResizeStep) Apply(in chan *os.File, errIn chan error) (out chan *os.File, errChan chan error) {
+	return applyStepPipeline(in, errIn, func(temp *os.File) (newTemp *os.File, err error) {
 		format := step.Args[1]
 		return step.resize(temp, format)
+	})
+}
+
+func (step FetchFileStep) Apply(in chan *os.File, errIn chan error) (out chan *os.File, errChan chan error) {
+	return applyStepPipeline(in, errIn, func(_ *os.File) (temp *os.File, err error) {
+		filename := step.Args[0]
+		return fechFile(filename)
+		//return nil, errors.New("please don't stop the music")
 	})
 }
 
@@ -118,14 +121,6 @@ func (step ResizeStep) resize(image *os.File, format string) (*os.File, error) {
 	cmd.Run()
 
 	return resized, err
-}
-
-func (step FetchFileStep) Apply(in chan *os.File) (out chan *os.File, errChan chan error) {
-	return applyStepPipeline(in, func(_ *os.File) (temp *os.File, err error) {
-		filename := step.Args[0]
-		return fechFile(filename)
-		//return nil, errors.New("please don't stop the music")
-	})
 }
 
 func fechFile(filename string) (*os.File, error) {
