@@ -96,31 +96,33 @@ func (step FetchFileStep) Apply(in chan *os.File, errIn chan error) (out chan *o
 }
 
 func (step ResizeStep) resize(image *os.File, format string) (*os.File, error) {
+	return shellConvert(image, "-resize", format)
+}
+
+func shellConvert(in *os.File, args ...string) (out *os.File, err error) {
 	binary, err := exec.LookPath("convert")
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	tempPrefix := "godragonfly" + format
-	resized, err := ioutil.TempFile(os.TempDir(), tempPrefix)
+	out, err = newTempfile()
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	if image == nil {
-		return nil, err
-	}
+	convertArgs := []string{in.Name()}
+	convertArgs = append(convertArgs, args...)
+	convertArgs = append(convertArgs, out.Name())
+	cmd := exec.Command(binary, convertArgs...)
 
-	args := []string{
-		image.Name(),
-		"-resize", format,
-		resized.Name(),
-	}
+	err = cmd.Run()
 
-	cmd := exec.Command(binary, args...)
-	cmd.Run()
+	return out, err
+}
 
-	return resized, err
+func newTempfile() (*os.File, error) {
+	tempPrefix := "godragonfly"
+	return ioutil.TempFile(os.TempDir(), tempPrefix)
 }
 
 func fechFile(filename string) (*os.File, error) {
